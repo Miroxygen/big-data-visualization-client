@@ -8,6 +8,8 @@
 import './nav-bar.js'
 import './chart-displayer.js'
 import './data-selecter.js'
+import { DataHandlerService } from '../services/dataHandlerService.js'
+import { FetchDataService } from '../services/fetchDataService.js'
 
 const template = document.createElement('template')
 
@@ -67,51 +69,60 @@ button:hover {
 </div>
 `
 customElements.define('start-page',
- class extends HTMLElement {
+  /**
+   * Custom HTML element.
+   */
+  class extends HTMLElement {
     #holder
     #startButton
     #exitButton
     #chartDisplayer
     #dataButton
     #dataSelect
-    constructor() {
+    /**
+     * Constructor for class.
+     */
+    constructor () {
       super()
 
       this.attachShadow({ mode: 'open' })
         .appendChild(template.content.cloneNode(true))
 
-        this.#holder = this.shadowRoot.querySelector('#holder')
-        this.#startButton = this.shadowRoot.querySelector('#startButton')
-        this.#exitButton = this.shadowRoot.querySelector('#exitButton')
-        this.#chartDisplayer = this.shadowRoot.querySelector("#chartDisplayer")
-        this.#dataButton = this.shadowRoot.querySelector('#dataButton')
-        this.#dataSelect = this.shadowRoot.querySelector('#dataSelect')
+      this.#holder = this.shadowRoot.querySelector('#holder')
+      this.#startButton = this.shadowRoot.querySelector('#startButton')
+      this.#exitButton = this.shadowRoot.querySelector('#exitButton')
+      this.#chartDisplayer = this.shadowRoot.querySelector('#chartDisplayer')
+      this.#dataButton = this.shadowRoot.querySelector('#dataButton')
+      this.#dataSelect = this.shadowRoot.querySelector('#dataSelect')
+      this.dataHandler = new DataHandlerService()
+      this.fecthData = new FetchDataService()
 
-        this.#startButton.addEventListener('click', () => {
-          this.#holder.classList.remove('hidden')
-        })
+      this.#startButton.addEventListener('click', () => {
+        this.#holder.classList.remove('hidden')
+      })
 
-        this.#exitButton.addEventListener('click', () => {
-          this.#holder.classList.add('hidden')
-        })
+      this.#exitButton.addEventListener('click', () => {
+        this.#holder.classList.add('hidden')
+      })
 
-        this.#dataButton.addEventListener('click', () => {
-          this.#dataSelect.classList.toggle('hidden')
-        })
+      this.#dataButton.addEventListener('click', () => {
+        this.#dataSelect.classList.toggle('hidden')
+      })
 
-        this.#holder.addEventListener('userselecteddata', async () => {
-          await this.setChartData()
-        })
+      this.#holder.addEventListener('userselecteddata', async () => {
+        await this.setChartData()
+      })
     }
 
     /**
      * Gets the users data choice.
+     *
      * @returns {Array} Array of data.
      */
-    getData() {
+    getData () {
       const chartData = this.#dataSelect.getData()
       let chartDataContainer = []
-      if(chartData.includes('&')) {
+      if (chartData.includes('&')) {
         chartDataContainer = chartData.split('&')
       } else {
         chartDataContainer.push(chartData)
@@ -122,103 +133,39 @@ customElements.define('start-page',
     /**
      * Sets the charts data based on fetched data.
      */
-    async setChartData() {
+    async setChartData () {
       const chartData = this.getData()
       let label, dataType, data, secondData
-      const chartDataSet = { firstlabel : "", firstdata : "", secondlabel : "", seconddata : ""}
+      const chartDataSet = { firstlabel: '', firstdata: '', secondlabel: '', seconddata: '' }
       for (let index = 0; index < chartData.length; index++) {
-        if(chartData[index].includes("lang")) {
-          dataType = "chart"
-          label = ["en", "ja", "es", "fr", "zh", "Other"]
-          data = await this.fetchSourceData(chartData[index])
-          data = this.countData(data)
-          chartDataSet.firstlabel = "Number of tweets in language "
+        if (chartData[index].includes('lang')) {
+          dataType = 'chart'
+          label = ['en', 'ja', 'es', 'fr', 'zh', 'Other']
+          data = await this.fecthData.getElasticSourceData(chartData[index], 'https://big-data-api.herokuapp.com')
+          data = this.dataHandler.countData(data)
+          chartDataSet.firstlabel = 'Number of tweets in language '
           chartDataSet.firstdata = data
-        } else if(chartData.length > 1) {
-          secondData = await this.fetchTermAggregatedeData(chartData[index])
-          secondData = this.sortAggregatedData(secondData, 5, "tweet_count")
+        } else if (chartData.length > 1) {
+          secondData = await this.fetchData.getElasticTermAggregatedeData(chartData[index], 'https://big-data-api.herokuapp.com')
+          secondData = this.dataHandler.sortAggregatedData(secondData, 5, 'tweet_count')
           chartDataSet.secondlabel = chartData[index]
           chartDataSet.seconddata = secondData
-        } else if(!chartData[index].includes("lang")) {
-          dataType = "median"
-          data = await this.fetchSourceData(chartData[index])
+        } else if (!chartData[index].includes('lang')) {
+          dataType = 'median'
+          data = await this.fetchData.fetchSourceData(chartData[index], 'https://big-data-api.herokuapp.com')
         }
       }
-      if(dataType === "chart") {
+      if (chartData.length > 1) {
+        this.#chartDisplayer.setCorrectDescription(`${chartData[0]}&${chartData[1]}`)
+      } else {
+        this.#chartDisplayer.setCorrectDescription(`${chartData[0]}`)
+      }
+      if (dataType === 'chart') {
         this.#chartDisplayer.setChartData(label, chartDataSet)
         this.#chartDisplayer.displayChart()
       } else {
-        this.#chartDisplayer.displayMedian(this.calculateMedian(data))
+        this.#chartDisplayer.displayMedian(this.dataHandler.calculateMedian(data))
       }
-      
-    }
-
-    /**
-     * Fetches source data.
-     * @param {string} source The source data to fetch.
-     * @returns Array of data.
-     */
-    async fetchSourceData(source) {
-      const response = await window.fetch(`https://big-data-api.herokuapp.com/api/v1/resource/source/tweeteddata/${source}`)
-      const data = await response.json()
-      return data.sortedData
-    }
-
-    /**
-     * Fetches termed aggregated data.
-     * @param {string} source Which source to aggregate.
-     * @returns Array of data.
-     */
-    async fetchTermAggregatedeData(source) {
-      const response = await window.fetch(`https://big-data-api.herokuapp.com/api/v1/resource/term-aggregation/tweeteddata/lang.keyword/${source}`)
-      const data = await response.json()
-      return data.aggregations.language_type.buckets
-    }
-
-    /**
-     * Counts the occurences of certain data.
-     */
-    countData(data) {
-      const counts = {}
-      for(const value of data) {
-        counts[value] = counts[value] ? counts[value] + 1 : 1
-      }
-      let countsArray = Object.values(counts)
-      countsArray = countsArray.sort((a, b) => b - a)
-      return countsArray.slice(0, 5)
-    }
-
-    /**
-     * Sorts aggregated data based on its values to fit chart.
-     * @param {object} data Object with data.
-     * @param {number} chartSize Determines index size of returned object.
-     * @param {string} value The value to extract from object.
-     */
-    sortAggregatedData(data, chartSize, value) {
-      const aggreGatedData = []
-      let lastValuesToFitChartSize = 0
-      for (let index = 0; index < (chartSize); index++) {
-        aggreGatedData.push(data[index][value].value)
-      }
-      for (let index = 0; index < (chartSize); index++) {
-        lastValuesToFitChartSize += parseInt(data[index][value].value)  
-      }
-      aggreGatedData.push(lastValuesToFitChartSize.toString())
-      return aggreGatedData
-    }
-
-    /**
-     * Calculcates a median number.
-     */
-    calculateMedian(data) {
-      const numberArray = data.map(parseFloat)
-      const sortedArray = numberArray.sort((a, b) => a - b)
-      const middleNumber = Math.floor(sortedArray.length / 2)
-      if (sortedArray.length % 2 === 1) {
-        return sortedArray[middleNumber];
-      }
-      return (sortedArray[middleNumber - 1] + sortedArray[middleNumber]) / 2
     }
   }
 )
-

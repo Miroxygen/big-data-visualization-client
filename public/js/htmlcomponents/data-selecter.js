@@ -5,7 +5,6 @@
  * @version 1.0.0
  */
 
-
 const template = document.createElement('template')
 
 template.innerHTML = `
@@ -55,33 +54,40 @@ label {
 </form>
 `
 
-customElements.define('data-selecter', 
+customElements.define('data-selecter',
+  /**
+   * Custom HTML element.
+   */
   class extends HTMLElement {
     #dataSelect
     #submit
-    constructor() {
+    /**
+     * Constrcutor for class.
+     */
+    constructor () {
       super()
 
       this.attachShadow({ mode: 'open' })
         .appendChild(template.content.cloneNode(true))
 
-        this.#dataSelect = this.shadowRoot.querySelector('#dataSelect')
-        this.#submit = this.shadowRoot.querySelector('#submit')
+      this.#dataSelect = this.shadowRoot.querySelector('#dataSelect')
+      this.#submit = this.shadowRoot.querySelector('#submit')
 
-        this.#submit.addEventListener('click', (event) => {
-          event.preventDefault()
-          this.dispatchEvent(new window.CustomEvent('userselecteddata', {
-            bubbles: true
-          }))
-        })
+      this.#submit.addEventListener('click', (event) => {
+        event.preventDefault()
+        this.dispatchEvent(new window.CustomEvent('userselecteddata', {
+          bubbles: true
+        }))
+      })
     }
 
     /**
      * Gets the data from the form.
+     *
+     * @returns {string} The value from the select element.
      */
-    getData() {
+    getData () {
       return this.#dataSelect.value
     }
   }
 )
-

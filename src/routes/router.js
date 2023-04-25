@@ -6,5 +6,4 @@ router.get('/', (req, res) => {
   res.render('index')
 })
 
-
-router.use('*', (req, res, next) => next(res.json( { message : "Error 404" } )))
+router.use('*', (req, res, next) => next(res.json({ message: 'Error 404' })))

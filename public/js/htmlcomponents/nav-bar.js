@@ -5,7 +5,6 @@
  * @version 1.0.0
  */
 
-
 const template = document.createElement('template')
 
 template.innerHTML = `
@@ -25,10 +24,15 @@ header {
 </header>
 `
 
-customElements.define('nav-bar', 
+customElements.define('nav-bar',
+  /**
+   * Custom HTML element.
+   */
   class extends HTMLElement {
-
-    constructor() {
+    /**
+     * Constructor for class.
+     */
+    constructor () {
       super()
 
       this.attachShadow({ mode: 'open' })
@@ -36,4 +40,3 @@ customElements.define('nav-bar',
     }
   }
 )
-
