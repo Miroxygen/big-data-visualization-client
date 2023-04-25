@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "start": "node src/js/index.js"
+    "start": "vite preview"
   },
   "repository": {
     "type": "git",
