@@ -8,8 +8,6 @@
 import './nav-bar.js'
 import './chart-displayer.js'
 import './data-selecter.js'
-import { DataHandlerService } from '../services/dataHandlerService.js'
-import { FetchDataService } from '../services/fetchDataService.js'
 
 const template = document.createElement('template')
 
@@ -65,24 +63,22 @@ button:hover {
   <button id="exitButton">X</button>
 </nav-bar>
 <data-selecter id="dataSelect" class="hidden"></data-selecter>
-<chart-displayer id="chartDisplayer" class="hidden"></chart-displayer>
+<chart-displayer id="chartDisplayer"></chart-displayer>
 </div>
 `
- 
- export class StartPage extends HTMLElement {
+customElements.define('start-page',
+ class extends HTMLElement {
     #holder
     #startButton
     #exitButton
     #chartDisplayer
     #dataButton
     #dataSelect
-    constructor(dataHandler = new DataHandlerService(), fetchData = new FetchDataService()) {
+    constructor() {
       super()
 
       this.attachShadow({ mode: 'open' })
         .appendChild(template.content.cloneNode(true))
-      this.dataHandler = dataHandler
-      this.fetchData = fetchData
 
         this.#holder = this.shadowRoot.querySelector('#holder')
         this.#startButton = this.shadowRoot.querySelector('#startButton')
@@ -108,8 +104,12 @@ button:hover {
         })
     }
 
-    getDataFromChart() {
-      const chartData = this.#chartDisplayer.getChartData()
+    /**
+     * Gets the users data choice.
+     * @returns {Array} Array of data.
+     */
+    getData() {
+      const chartData = this.#dataSelect.getData()
       let chartDataContainer = []
       if(chartData.includes('&')) {
         chartDataContainer = chartData.split('&')
@@ -123,7 +123,7 @@ button:hover {
      * Sets the charts data based on fetched data.
      */
     async setChartData() {
-      const chartData = this.getDataFromChart()
+      const chartData = this.getData()
       let label, dataType, data, secondData
       const chartDataSet = { firstlabel : "", firstdata : "", secondlabel : "", seconddata : ""}
       for (let index = 0; index < chartData.length; index++) {
@@ -220,6 +220,5 @@ button:hover {
       return (sortedArray[middleNumber - 1] + sortedArray[middleNumber]) / 2
     }
   }
-
-  customElements.define('start-page', StartPage)
+)
 

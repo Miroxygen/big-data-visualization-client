@@ -5,11 +5,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview",
-    "start": "vite preview"
+    "devStart": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "lint": "npx eslint ./src || exit 0",
+    "lint:fix": "npx eslint ./src --fix || exit 0"
   },
   "repository": {
     "type": "git",
@@ -22,7 +21,12 @@
     "@lnu/eslint-config": "^1.1.4",
     "chart.js": "^4.2.1",
     "dotenv": "^16.0.3",
-    "node-fetch": "^3.3.1",
-    "vite": "^4.2.1"
-  }
+    "express": "^4.18.2",
+    "helmet": "^6.1.5",
+    "node-fetch": "^3.3.1"
+  },
+  "devDependencies": {
+    "@lnu/eslint-config": "^1.1.4",
+    "nodemon": "^2.0.15"
+}
 }

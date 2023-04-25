@@ -68,7 +68,8 @@ customElements.define('data-selecter',
         this.#dataSelect = this.shadowRoot.querySelector('#dataSelect')
         this.#submit = this.shadowRoot.querySelector('#submit')
 
-        this.#submit.addEventListener('click', () => {
+        this.#submit.addEventListener('click', (event) => {
+          event.preventDefault()
           this.dispatchEvent(new window.CustomEvent('userselecteddata', {
             bubbles: true
           }))

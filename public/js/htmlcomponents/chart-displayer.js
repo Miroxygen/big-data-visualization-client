@@ -4,7 +4,6 @@
  * @author // Miranda Holmlund <mh225wi@lnu.se>
  * @version 1.0.0
  */
-import Chart from 'chart.js/auto'
 
 const template = document.createElement('template')
 
@@ -60,7 +59,6 @@ template.innerHTML = `
 customElements.define('chart-displayer', 
   class extends HTMLElement {
     #chart
-    #submit
     #chartChoice
     #dataSelect
     #median
@@ -73,9 +71,7 @@ customElements.define('chart-displayer',
         .appendChild(template.content.cloneNode(true))
 
         this.#chart = this.shadowRoot.querySelector('#chart')
-        this.#submit = this.shadowRoot.querySelector('#submit')
         this.#chartChoice = this.shadowRoot.querySelector('#chartChoice')
-        this.#dataSelect = this.shadowRoot.querySelector('#dataSelect')
         this.#median = this.shadowRoot.querySelector('#median')
         this.#chartContainer = this.shadowRoot.querySelector('#chartContainer')
         this.#descriptionText = this.shadowRoot.querySelector('#descriptionText')
@@ -83,11 +79,6 @@ customElements.define('chart-displayer',
         this.label = ""
         this.chart = ""
         this.chartDataSet = []
-
-        this.#submit.addEventListener('click', (event) => {
-          event.preventDefault()
-          this.displaySelectedData()
-        })
 
         this.#chartChoice.addEventListener('click', (event) => {
           this.switchChartType(event)
@@ -127,14 +118,6 @@ customElements.define('chart-displayer',
       }
     }
 
-    /**
-     * Sends a custom event that user has selected data.
-     */
-    userSelectedData() {
-        this.dispatchEvent(new window.CustomEvent('userselecteddata', {
-          bubbles: true
-        }))  
-    }
 
     /**
      * Sets the chart data to be usable across the element.
@@ -157,7 +140,6 @@ customElements.define('chart-displayer',
     displayChart() {
       this.#chartContainer.classList.remove('hidden')
       this.#median.classList.add('hidden')
-      console.log(this.chartDataSet)
       if(this.chart !== "") {
         this.destroyChart()
       }
