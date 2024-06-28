@@ -1,4 +1,4 @@
-# Big Data Client
+# Big Data Visualization Client
 
 A web application for displaying big data, built using Express.js with EJS templating and integrated with Chart.js for data visualization.
 
